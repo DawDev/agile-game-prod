@@ -9,5 +9,5 @@ Run `python main.py` to run the game
 ### Docker container
 ...
 
-### .exe 
+### .exe file
 You can download the exe at ...
