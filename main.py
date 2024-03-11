@@ -37,7 +37,10 @@ if __name__ == "__main__":
         .add_scene("menu", MenuScene(game.scene_manager))\
         .add_scene("level_selection", LevelSelectScene(game.scene_manager))\
         .change_scene("menu")
-    for i in range(12):
-        game.scene_manager.add_level(BaseLevelScene(game.scene_manager))
-    
+    # for i in range(12):
+    #     game.scene_manager.add_level(BaseLevelScene(game.scene_manager))
+    game.scene_manager.add_level(LevelOne(game.scene_manager))
+
+    game.ev_manager.subscribe(MOUSEBUTTONDOWN, lambda _: game.toggle_debug())
+
     game.main()

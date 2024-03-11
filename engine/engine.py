@@ -21,6 +21,7 @@ class Engine:
         self.scene_manager: "SceneManager" = config.SCENE_MANAGER(self)
         self.globals: Globals = Globals()
         self.globals.CONFIG = config
+        # self.debug_mode: bool = False
 
     def main(self) -> None:
         while self.running:
@@ -47,3 +48,7 @@ class Engine:
     
     def quit(self, _) -> None:
         self.running = False
+    
+    def toggle_debug(self) -> None:
+        self.globals.DEBUG = not self.globals.DEBUG
+        

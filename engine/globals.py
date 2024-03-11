@@ -10,4 +10,5 @@ from .utils import Singleton
 class Globals(metaclass=Singleton):
     DELTA_TIME: float = 0.0
     CONFIG: "Config" = None
+    DEBUG: bool = False
     
