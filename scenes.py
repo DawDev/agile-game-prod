@@ -1,5 +1,6 @@
-import engine as eng
 import pygame
+import json
+import engine as eng
 from player import Player
 from coin import Coin
 
@@ -73,7 +74,7 @@ class LevelSelectScene(eng.Scene):
         btn_margin = 25
         x_offset = 0
         y_offset = 0
-        for i in range(self.scene_manager.last_level_id):
+        for i in range(len(self.scene_manager.levels)):
             if i % 5 == 0 and not i == 0:
                 y_offset += btn_rect.height + btn_margin
                 x_offset = 0
@@ -100,12 +101,58 @@ class LevelSelectScene(eng.Scene):
 
 
 class BaseLevelScene(eng.Scene):
-    def __init__(self, manager: eng.SceneManager) -> None:
+    def __init__(self, manager: eng.SceneManager, map_json: str) -> None:
         super().__init__(manager)
         self.terrain: pygame.sprite.Group = pygame.sprite.Group()
         self.coins: pygame.sprite.Group = pygame.sprite.Group()
         self.player: pygame.sprite.GroupSingle = pygame.sprite.GroupSingle()
+        self.wins: pygame.sprite.Group = pygame.sprite.Group()
         self.level_id: int = None
+        self.map_json: str = map_json
+
+    def load(self) -> None:
+        self.coinsGathered = 0
+        map_dict = json.loads(self.map_json)
+        tile_size = map_dict.get("tile_size")
+        for tile in map_dict.get("tiles"):
+            ttype = tile.get("tile_type")
+            x_pos = int(tile.get("position")[0])
+            y_pos = int(tile.get("position")[1])
+            position = pygame.math.Vector2(x_pos*tile_size, y_pos*tile_size)
+            if ttype is None:
+                continue
+            if ttype == "terrain":
+                eng.Entity([self.terrain], 
+                    pygame.Surface((tile_size, tile_size)),
+                    position)
+            if ttype == "player":
+                Player([self.player], position=position)
+            if ttype == "win":
+                w = eng.Entity([self.wins], 
+                    pygame.Surface((tile_size, tile_size)),
+                    position)
+                w.image.fill((255, 215, 0))
+            if ttype == "coin":
+                Coin([self.coins], position=position)
+
+    def unload(self) -> None:
+        self.player.empty()
+        self.coins.empty()
+        self.terrain.empty()
+        self.wins.empty()
+
+    def process_collisions(self) -> None:
+        cCol, coins = self.player.sprite.collide(self.coins)
+        wCol, wins = self.player.sprite.collide(self.wins)
+        if cCol:
+            for c in coins:
+                c: Coin
+                c.remove(self.coins)
+                self.scene_manager.player_coins += 1
+                self.coinsGathered += 1
+        if wCol:
+            self.scene_manager.change_to_next_level(self.level_id)
+
 
     def update(self) -> None:
         self.coins.update()
@@ -113,10 +160,13 @@ class BaseLevelScene(eng.Scene):
         self.player.sprite.collide_x(self.terrain)
         self.player.sprite.move_y()
         self.player.sprite.collide_y(self.terrain)
+        
+        self.process_collisions()
 
     def draw(self) -> None:
         self.surface.fill((255, 255, 255))
         self.terrain.draw(self.surface)
+        self.wins.draw(self.surface)
         # self.coins.draw(self.surface)
         for c in self.coins.sprites():
             c.render(self.surface)
@@ -128,11 +178,12 @@ class BaseLevelScene(eng.Scene):
             pygame.draw.rect(self.surface, (255, 0, 0), t.rect, 1)
         for c in self.coins.sprites():
             pygame.draw.rect(self.surface, (255, 0, 0), c.rect, 1)
+    
 
 
-class LevelOne(BaseLevelScene):
-    def __init__(self, manager: eng.SceneManager) -> None:
-        super().__init__(manager)
-        self.player.add(Player(position=pygame.math.Vector2(50, 50)))
-        self.terrain.add(eng.Entity(position=pygame.math.Vector2(150, 50)))
-        self.coins.add(Coin(position=pygame.math.Vector2(300, 300)))
+# class LevelOne(BaseLevelScene):
+#     def __init__(self, manager: eng.SceneManager) -> None:
+#         super().__init__(manager)
+#         self.player.add(Player(position=pygame.math.Vector2(50, 50)))
+#         self.terrain.add(eng.Entity(position=pygame.math.Vector2(150, 50)))
+#         self.coins.add(Coin(position=pygame.math.Vector2(300, 300)))

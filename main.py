@@ -1,3 +1,4 @@
+import os
 import pygame
 from pygame.locals import *
 # import pygame_gui as pgui
@@ -6,19 +7,68 @@ import engine as eng
 from scenes import *
 
 
+def load_json_level(filename) -> str:
+    with open(f"./levels/{filename}", "r") as file:
+        return file.read()
+
+
+def load_levels(game) -> str:
+    level_files = os.listdir("./levels/")
+    for filename in level_files:
+        game.scene_manager.add_level(
+            BaseLevelScene(game.scene_manager, load_json_level(filename))
+        )
+
+
+def on_button_down(ev: pygame.event.Event, game: eng.Engine) -> None:
+    if ev.key == K_TAB:
+        game.toggle_debug()
+    if ev.key == K_r:
+        game.scene_manager.player_coins -= game.scene_manager.get_scene().coinsGathered
+        curr_scene = game.scene_manager.current_scene
+        game.scene_manager.change_scene(curr_scene)
+
+
 class ExtendedSceneManager(eng.SceneManager):
     def __init__(self, engine: eng.Engine) -> None:
         super().__init__(engine)
-        self.last_level_id: int = 0
+        self.current_level: int = 0
+        self.levels: list[str] = []
+        self.player_coins: int = 0
+        self.level_time: float = 0.0
+        self.game_time: float = 0.0
+        label_options: eng.UIOptions = eng.UIOptions(
+            draw_background=False,
+            draw_border=False
+        )
+        self.coins_label: eng.Label = eng.Label(
+            pygame.Rect(20, 20, 300, 50), label_options, f"Coins: {self.player_coins}"
+        )
     
     def change_to_next_level(self, _id: int) -> None:
-        if _id >= self.last_level_id:
+        if len(self.levels) <= _id + 1:
             self.change_scene("end_screen")
+            return
+        self.current_level = _id + 1
         self.change_scene(_id+1)
 
     def add_level(self, level: BaseLevelScene) -> None:
-        self.add_scene(self.last_level_id, level)
-        self.last_level_id += 1
+        _id = len(self.levels)
+        self.levels.append(_id)
+        self.add_scene(_id, level)
+        level.level_id = _id
+    
+    def draw(self) -> None:
+        super().draw()
+        surf: pygame.Surface = self.get_scene().surface
+        self.coins_label.draw(surf)
+
+    def update(self) -> None:
+        super().update()
+        self.coins_label.text = f"Coins: {self.player_coins}"
+    
+    def get_level_count(self) -> int:
+        return self.last_level_id - 1
 
 
 if __name__ == "__main__":
@@ -36,11 +86,13 @@ if __name__ == "__main__":
     game.scene_manager\
         .add_scene("menu", MenuScene(game.scene_manager))\
         .add_scene("level_selection", LevelSelectScene(game.scene_manager))\
+        .add_scene("end_screen", eng.Scene(game.scene_manager))\
         .change_scene("menu")
     # for i in range(12):
     #     game.scene_manager.add_level(BaseLevelScene(game.scene_manager))
-    game.scene_manager.add_level(LevelOne(game.scene_manager))
+    # game.scene_manager.add_level(BaseLevelScene(game.scene_manager, load_json_level("0.json")))
+    load_levels(game)
 
-    game.ev_manager.subscribe(MOUSEBUTTONDOWN, lambda _: game.toggle_debug())
+    game.ev_manager.subscribe(KEYDOWN, lambda ev: on_button_down(ev, game))
 
     game.main()

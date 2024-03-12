@@ -6,14 +6,14 @@ import math
 
 
 class Coin(eng.Entity):
-    SIZE: int = 50
+    SIZE: int = 25
     def __init__(self, 
         groups: tuple[pygame.sprite.Group] = (), 
         image: pygame.Surface=pygame.transform.scale(pygame.image.load("./assets/coin.png"), (SIZE, SIZE)), 
         position: Vector2=Vector2(0, 0)) -> None:
         super().__init__(groups, image, position)
         self.y_offset: float = 0.0
-        self.y_offset_mult: float = 20
+        self.y_offset_mult: float = 10
         self.y_offset_curve: list[float] = []
 
         for i in range(0, 30):

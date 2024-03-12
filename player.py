@@ -5,7 +5,7 @@ import engine as eng
 
 
 class Player(eng.Entity):
-    SIZE: int = 50
+    SIZE: int = 24
     def __init__(self, 
         groups: tuple[pygame.sprite.Group] = (), 
         image: pygame.Surface=pygame.transform.scale(pygame.image.load("./assets/player.png"), (SIZE*0.8333, SIZE)), 
@@ -14,23 +14,24 @@ class Player(eng.Entity):
     
         self.y_velocity: float = 0.0
         self.SPEED: int = 200
-        self.MAX_FALL_SPEED = 500
-        self.JUMP_FORCE = 600
+        self.MAX_FALL_SPEED = 300
+        self.JUMP_FORCE = 400
         self.frame_x_vel: float = 0.0
-        self.GRAVITY: float = 30
+        self.GRAVITY: float = 25
         self.grounded: bool = False
 
     def move_x(self) -> None:
         keys = pygame.key.get_pressed()
         dt: float = eng.Globals().DELTA_TIME
         x_delta: float = 0
+
         if keys[K_d] or keys[K_RIGHT]:
             x_delta += 1
         if keys[K_a] or keys[K_LEFT]:
             x_delta -= 1
         self.rect.x += x_delta * dt * self.SPEED
         self.frame_x_vel = x_delta * dt * self.SPEED
-    
+
     def collide_x(self, group) -> None:
         for ent in group.sprites():
             ent: pygame.sprite.Sprite
@@ -44,14 +45,14 @@ class Player(eng.Entity):
         keys = pygame.key.get_just_pressed()
         dt: float = eng.Globals().DELTA_TIME
 
-        if keys[K_w] or keys[K_UP]:
+        if (keys[K_w] or keys[K_UP]) and self.grounded:
             self.y_velocity = -self.JUMP_FORCE
 
         if self.y_velocity > self.MAX_FALL_SPEED:
             self.y_velocity = self.MAX_FALL_SPEED
         
-        if not self.grounded:
-            self.y_velocity += self.GRAVITY
+        # if not self.grounded:
+        self.y_velocity += self.GRAVITY
         self.rect.y += self.y_velocity * dt
     
     def collide_y(self, group) -> None:
@@ -62,7 +63,7 @@ class Player(eng.Entity):
                 if self.y_velocity > 0:
                     self.rect.bottom = ent.rect.top
                     grounded = True
-                    self.y_velocity = 0
+                    # self.y_velocity = 0
                 if self.y_velocity < 0:
                     self.y_velocity = 0
                     self.rect.top = ent.rect.bottom
