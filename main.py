@@ -39,10 +39,18 @@ class ExtendedSceneManager(eng.SceneManager):
         self.game_time: float = 0.0
         label_options: eng.UIOptions = eng.UIOptions(
             draw_background=False,
-            draw_border=False
+            draw_border=False,
+            antialias=True,
+            align="left"
         )
         self.coins_label: eng.Label = eng.Label(
-            pygame.Rect(20, 20, 300, 50), label_options, f"Coins: {self.player_coins}"
+            pygame.Rect(50, 20, 150, 50), label_options, f"Coins: {self.player_coins}"
+        )
+        self.game_time_label: eng.Label = eng.Label(
+            pygame.Rect(50, 70, 150, 50), label_options, f"Total time: {self.game_time}"
+        )
+        self.level_time_label: eng.Label = eng.Label(
+            pygame.Rect(50, 120, 150, 50), label_options, f"Level time: {self.level_time}"
         )
     
     def change_to_next_level(self, _id: int) -> None:
@@ -51,6 +59,7 @@ class ExtendedSceneManager(eng.SceneManager):
             return
         self.current_level = _id + 1
         self.change_scene(_id+1)
+        self.level_time = 0.0
 
     def add_level(self, level: BaseLevelScene) -> None:
         _id = len(self.levels)
@@ -60,13 +69,21 @@ class ExtendedSceneManager(eng.SceneManager):
     
     def draw(self) -> None:
         super().draw()
-        surf: pygame.Surface = self.get_scene().surface
-        self.coins_label.draw(surf)
+        if type(self.current_scene) is int: 
+            surf: pygame.Surface = self.get_scene().surface
+            self.coins_label.draw(surf)
+            self.level_time_label.draw(surf)
+            self.game_time_label.draw(surf)
 
     def update(self) -> None:
         super().update()
-        self.coins_label.text = f"Coins: {self.player_coins}"
-    
+        if type(self.current_scene) is int: 
+            self.coins_label.text = f"Coins: {self.player_coins}"
+            self.game_time += eng.Globals().DELTA_TIME
+            self.level_time += eng.Globals().DELTA_TIME
+            self.game_time_label.text = f"Total time: {round(self.game_time, 2)}"
+            self.level_time_label.text = f"Level time: {round(self.level_time, 2)}"
+        
     def get_level_count(self) -> int:
         return self.last_level_id - 1
 

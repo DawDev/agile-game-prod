@@ -19,6 +19,7 @@ class UIOptions:
     border_radia: tuple = (-1, -1, -1, -1)
     hover_darken_percentage: float = 0.1
     _font: pygame.Font | None = None
+    align: str = "center"
 
     def get_font(self) -> pygame.Font:
         if self._font is None:
@@ -61,7 +62,10 @@ class Button:
             wraplength=self.rect.width - self.options.text_padding * 2
         )
         pos = text.get_rect()
-        pos.center = self.rect.center
+        if self.options.align == "center":
+            pos.center = self.rect.center
+        if self.options.align == "left":
+            pos.right = self.rect.left
         return (text, pos)
 
     
@@ -115,6 +119,10 @@ class Label:
         )
         pos = text.get_rect()
         pos.center = self.rect.center
+        if self.options.align == "left":
+            pos.centery = self.rect.centery
+            pos.left = self.rect.left
+
         return (text, pos)
 
     
