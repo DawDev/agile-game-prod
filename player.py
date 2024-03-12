@@ -15,9 +15,9 @@ class Player(eng.Entity):
         self.y_velocity: float = 0.0
         self.SPEED: int = 200
         self.MAX_FALL_SPEED = 300
-        self.JUMP_FORCE = 400
+        self.JUMP_FORCE = 525
         self.frame_x_vel: float = 0.0
-        self.GRAVITY: float = 25
+        self.GRAVITY: float = 30
         self.grounded: bool = False
 
     def move_x(self) -> None:
