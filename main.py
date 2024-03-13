@@ -5,6 +5,7 @@ from pygame.locals import *
 # import pygame_gui.elements as el
 import engine as eng
 from scenes import *
+from extended_scene_manager import ExtendedSceneManager
 
 
 def load_json_level(filename) -> str:
@@ -21,71 +22,13 @@ def load_levels(game) -> str:
 
 
 def on_button_down(ev: pygame.event.Event, game: eng.Engine) -> None:
-    if ev.key == K_TAB:
+    if ev.key == K_AMPERSAND:
         game.toggle_debug()
     if ev.key == K_r:
         game.scene_manager.player_coins -= game.scene_manager.get_scene().coinsGathered
         curr_scene = game.scene_manager.current_scene
         game.scene_manager.change_scene(curr_scene)
 
-
-class ExtendedSceneManager(eng.SceneManager):
-    def __init__(self, engine: eng.Engine) -> None:
-        super().__init__(engine)
-        self.current_level: int = 0
-        self.levels: list[str] = []
-        self.player_coins: int = 0
-        self.level_time: float = 0.0
-        self.game_time: float = 0.0
-        label_options: eng.UIOptions = eng.UIOptions(
-            draw_background=False,
-            draw_border=False,
-            antialias=True,
-            align="left"
-        )
-        self.coins_label: eng.Label = eng.Label(
-            pygame.Rect(50, 20, 150, 50), label_options, f"Coins: {self.player_coins}"
-        )
-        self.game_time_label: eng.Label = eng.Label(
-            pygame.Rect(50, 70, 150, 50), label_options, f"Total time: {self.game_time}"
-        )
-        self.level_time_label: eng.Label = eng.Label(
-            pygame.Rect(50, 120, 150, 50), label_options, f"Level time: {self.level_time}"
-        )
-    
-    def change_to_next_level(self, _id: int) -> None:
-        if len(self.levels) <= _id + 1:
-            self.change_scene("end_screen")
-            return
-        self.current_level = _id + 1
-        self.change_scene(_id+1)
-        self.level_time = 0.0
-
-    def add_level(self, level: BaseLevelScene) -> None:
-        _id = len(self.levels)
-        self.levels.append(_id)
-        self.add_scene(_id, level)
-        level.level_id = _id
-    
-    def draw(self) -> None:
-        super().draw()
-        if type(self.current_scene) is int: 
-            surf: pygame.Surface = self.get_scene().surface
-            self.coins_label.draw(surf)
-            self.level_time_label.draw(surf)
-            self.game_time_label.draw(surf)
-
-    def update(self) -> None:
-        super().update()
-        if type(self.current_scene) is int: 
-            self.coins_label.text = f"Coins: {self.player_coins}"
-            self.game_time += eng.Globals().DELTA_TIME
-            self.level_time += eng.Globals().DELTA_TIME
-            self.game_time_label.text = f"Total time: {round(self.game_time, 2)}"
-            self.level_time_label.text = f"Level time: {round(self.level_time, 2)}"
-        
-    def get_level_count(self) -> int:
-        return self.last_level_id - 1
 
 
 if __name__ == "__main__":
