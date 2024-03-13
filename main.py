@@ -43,7 +43,7 @@ if __name__ == "__main__":
         .add_scene("menu", MenuScene(game.scene_manager))\
         .add_scene("level_selection", LevelSelectScene(game.scene_manager))\
         .add_scene("end_screen", EndScreenScene(game.scene_manager))\
-        .change_scene("end_screen")
+        .change_scene("menu")
 
     load_levels(game)
 
