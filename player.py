@@ -14,7 +14,7 @@ class Player(eng.Entity):
     
         self.y_velocity: float = 0.0
         self.SPEED: int = 200
-        self.MAX_FALL_SPEED = 300
+        self.MAX_FALL_SPEED = 500
         self.JUMP_FORCE = 525
         self.frame_x_vel: float = 0.0
         self.GRAVITY: float = 30
@@ -63,10 +63,14 @@ class Player(eng.Entity):
                 if self.y_velocity > 0:
                     self.rect.bottom = ent.rect.top
                     grounded = True
-                    # self.y_velocity = 0
+                    self.y_velocity = 0
                 if self.y_velocity < 0:
                     self.y_velocity = 0
                     self.rect.top = ent.rect.bottom
+
+            rct = (self.rect.left-3, self.rect.bottom, self.rect.width+3, 3)
+            if ent.rect.colliderect(rct):
+                grounded = True
         self.grounded = grounded
     
     def collide(self, group) -> tuple[bool, list[eng.Entity]]:

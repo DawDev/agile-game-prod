@@ -31,15 +31,41 @@ class MenuScene(eng.Scene):
             text = "PLATFORMAH"
         )
 
+        self.help_label = eng.Label(
+            pygame.Rect(
+                eng.Globals().CONFIG.WINDOW_SIZE[0] - 75,
+                eng.Globals().CONFIG.WINDOW_SIZE[1] - 45,
+                75, 50
+            ),
+            eng.UIOptions(draw_background=False, antialias=True, font_size=24),
+            "Help"
+        )
+
+        self.keybind_label = eng.Label(
+            pygame.Rect(
+                eng.Globals().CONFIG.WINDOW_SIZE[0] - 150,
+                eng.Globals().CONFIG.WINDOW_SIZE[1] - 200,
+                135, 185
+            ),
+            eng.UIOptions(align="center", background_color=(100, 100, 100), text_color=(255, 255, 255)),
+            "WSAD:\n Movement\n\n" \
+            "TAB:\n Show stats\n\n" \
+            "R:\n Reset level"
+        )
+
     def update(self) -> None:
         self.button.update()
         if self.button.is_clicked(1):
             self.scene_manager.change_scene("level_selection")
 
+
     def draw(self) -> None:
         self.surface.fill((150, 150, 150))
         self.button.draw(self.surface)
         self.label.draw(self.surface)
+        self.help_label.draw(self.surface)
+        if self.help_label.hover():
+            self.keybind_label.draw(self.surface)
 
 
 class LevelSelectScene(eng.Scene):
@@ -141,7 +167,7 @@ class BaseLevelScene(eng.Scene):
         self.terrain.empty()
         self.wins.empty()
 
-    def process_collisions(self) -> None:
+    def process_collisions(self) -> bool:
         cCol, coins = self.player.sprite.collide(self.coins)
         wCol, wins = self.player.sprite.collide(self.wins)
         if cCol:
@@ -152,7 +178,16 @@ class BaseLevelScene(eng.Scene):
                 self.coinsGathered += 1
         if wCol:
             self.scene_manager.change_to_next_level(self.level_id)
+        return wCol
 
+    def check_out_of_bounds(self) -> None:
+        p_rect = self.player.sprite.rect
+        if p_rect.top > eng.Globals().CONFIG.WINDOW_SIZE[1]:
+            self.scene_manager.restart_level()
+        if p_rect.right < 0:
+            self.scene_manager.restart_level()
+        if p_rect.left > eng.Globals().CONFIG.WINDOW_SIZE[0]:
+            self.scene_manager.restart_level()
 
     def update(self) -> None:
         self.coins.update()
@@ -160,8 +195,8 @@ class BaseLevelScene(eng.Scene):
         self.player.sprite.collide_x(self.terrain)
         self.player.sprite.move_y()
         self.player.sprite.collide_y(self.terrain)
-        
-        self.process_collisions()
+        if not self.process_collisions():
+            self.check_out_of_bounds()
 
     def draw(self) -> None:
         self.surface.fill((255, 255, 255))
@@ -178,12 +213,56 @@ class BaseLevelScene(eng.Scene):
             pygame.draw.rect(self.surface, (255, 0, 0), t.rect, 1)
         for c in self.coins.sprites():
             pygame.draw.rect(self.surface, (255, 0, 0), c.rect, 1)
-    
 
 
-# class LevelOne(BaseLevelScene):
-#     def __init__(self, manager: eng.SceneManager) -> None:
-#         super().__init__(manager)
-#         self.player.add(Player(position=pygame.math.Vector2(50, 50)))
-#         self.terrain.add(eng.Entity(position=pygame.math.Vector2(150, 50)))
-#         self.coins.add(Coin(position=pygame.math.Vector2(300, 300)))
+class EndScreenScene(eng.Scene):
+    def __init__(self, manager: eng.SceneManager) -> None:
+        super().__init__(manager)
+        self.button_options = eng.UIOptions(
+            antialias=True,
+            border_radius=5,
+            border_radia=(5, 5, 5, 5),
+            draw_border=True,
+            border_color=(200, 200, 200),
+            border_width=2,
+        )
+        self.label_options = eng.UIOptions(
+            font_size=60,
+            antialias=True,
+            draw_background=False
+        )
+        self.time_label_options = eng.UIOptions(
+            font_size=20,
+            antialias=True,
+            draw_background=False
+        )
+        self.button = eng.Button(
+            pygame.Rect(325, 400, 150, 50),
+            self.button_options,
+            "Play Again!"
+        )
+        self.winlabel = eng.Label(
+            pygame.Rect(100, 200, 600, 50),
+            self.label_options,
+            text = "You Win!"
+        )
+
+        self.timelabel = eng.Label(
+            pygame.Rect(100, 300, 600, 50),
+            self.time_label_options,
+            text = f"You won the game in {round(self.scene_manager.game_time, 2)} seconds!"
+        )
+
+    def load(self) -> None:
+        self.timelabel.text = f"You won the game in {round(self.scene_manager.game_time, 2)} seconds!"
+
+    def update(self) -> None:
+        self.button.update()
+        if self.button.is_clicked(1):
+            self.scene_manager.change_scene("menu")
+
+    def draw(self) -> None:
+        self.surface.fill((150, 150, 150))
+        self.button.draw(self.surface)
+        self.winlabel.draw(self.surface)
+        self.timelabel.draw(self.surface)

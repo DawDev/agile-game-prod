@@ -25,7 +25,6 @@ class SceneManager:
         return self
     
     def change_scene(self, name: str) -> Self:
-        print(name)
         self.get_scene().unload()
         self.current_scene = name
         self.get_scene().load()

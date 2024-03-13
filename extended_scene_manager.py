@@ -57,7 +57,7 @@ class ExtendedSceneManager(eng.SceneManager):
     def update(self) -> None:
         self.show_gui = pygame.key.get_pressed()[K_TAB]
         super().update()
-        if type(self.current_scene) is int and self.show_gui: 
+        if type(self.current_scene) is int: 
             self.coins_label.text = f"Coins: {self.player_coins}"
             self.game_time += eng.Globals().DELTA_TIME
             self.level_time += eng.Globals().DELTA_TIME
@@ -66,3 +66,8 @@ class ExtendedSceneManager(eng.SceneManager):
         
     def get_level_count(self) -> int:
         return self.last_level_id - 1
+
+    def restart_level(self) -> None:
+        if type(self.current_scene) is int:
+            self.player_coins -= self.get_scene().coinsGathered
+            self.change_scene(self.current_scene)

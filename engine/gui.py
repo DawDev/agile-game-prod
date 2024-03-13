@@ -152,3 +152,5 @@ class Label:
     def update(self) -> None:
         pass
     
+    def hover(self) -> bool:
+        return self.rect.collidepoint(*pygame.mouse.get_pos())
